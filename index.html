@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>unless.lol</title>
+    <style>
+        :root {
+            --bg-color: #050510;
+            --orbit-color: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            font-family: sans-serif;
+        }
+
+        #solar-system {
+            position: relative;
+            width: 100vmin;
+            height: 100vmin;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transform: scale(0.8); /* Scale down to fit everything comfortably */
+        }
+
+        /* The Sun */
+        .sun {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: radial-gradient(circle, #ffd700, #ff8c00);
+            border-radius: 50%;
+            box-shadow: 0 0 40px #ff8c00, 0 0 80px rgba(255, 140, 0, 0.4);
+            z-index: 10;
+        }
+
+        /* Generic Orbit Ring */
+        .orbit {
+            position: absolute;
+            border: 1px solid var(--orbit-color);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+
+        /* The Planet Container (Rotates) */
+        .planet-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            animation: orbit linear infinite;
+        }
+
+        /* The Planet Body */
+        .planet {
+            position: absolute;
+            top: 50%;
+            right: 0; /* Place on the edge of the container */
+            transform: translate(50%, -50%);
+            border-radius: 50%;
+            box-shadow: inset -2px -2px 6px rgba(0,0,0,0.5);
+        }
+
+        /* Moon Orbit System */
+        .moon-system {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            animation: orbit linear infinite;
+            pointer-events: none;
+        }
+
+        .moon-orbit-line {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 50%;
+        }
+
+        .moon {
+            position: absolute;
+            top: 50%;
+            right: 0;
+            transform: translate(50%, -50%);
+            background-color: #ccc;
+            border-radius: 50%;
+        }
+
+        /* Animation Keyframes */
+        @keyframes orbit {
+            from { transform: translate(-50%, -50%) rotate(0deg); }
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        /* Tooltip styling */
+        .label {
+            position: absolute;
+            color: rgba(255,255,255,0.7);
+            font-size: 10px;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap;
+            pointer-events: none;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="solar-system">
+        <div class="sun"></div>
+        <!-- Planets will be injected here via JS -->
+    </div>
+
+    <script>
+        const solarSystemData = [
+            {
+                name: "Mercury",
+                size: 8,
+                color: "#A5A5A5",
+                orbitRadius: 100, // px
+                orbitSpeed: 4, // seconds per revolution
+                moons: []
+            },
+            {
+                name: "Venus",
+                size: 14,
+                color: "#E3BB76",
+                orbitRadius: 150,
+                orbitSpeed: 7,
+                moons: []
+            },
+            {
+                name: "Earth",
+                size: 15,
+                color: "#22A6ED",
+                orbitRadius: 210,
+                orbitSpeed: 10,
+                moons: [
+                    { size: 3, radius: 18, speed: 1, color: "#ddd" }
+                ]
+            },
+            {
+                name: "Mars",
+                size: 10,
+                color: "#DD4C22",
+                orbitRadius: 270,
+                orbitSpeed: 15,
+                moons: [
+                    { size: 2, radius: 12, speed: 0.8, color: "#aaa" },
+                    { size: 1.5, radius: 16, speed: 1.2, color: "#aaa" }
+                ]
+            },
+            {
+                name: "Jupiter",
+                size: 40,
+                color: "#D6A566",
+                orbitRadius: 380,
+                orbitSpeed: 30,
+                moons: [
+                    { size: 3, radius: 28, speed: 1.5, color: "#eec" }, // Io
+                    { size: 2.5, radius: 34, speed: 2.5, color: "#ddd" }, // Europa
+                    { size: 4, radius: 42, speed: 4, color: "#ccc" }, // Ganymede
+                    { size: 3.5, radius: 50, speed: 6, color: "#bbb" }  // Callisto
+                ]
+            },
+            {
+                name: "Saturn",
+                size: 35,
+                color: "#F4D03F",
+                orbitRadius: 500,
+                orbitSpeed: 45,
+                moons: [
+                    { size: 4, radius: 45, speed: 3, color: "#eec" }, // Titan
+                    { size: 2, radius: 35, speed: 2, color: "#ddd" },
+                    { size: 1.5, radius: 28, speed: 1.5, color: "#ccc" }
+                ],
+                ring: true // Special case for Saturn's rings
+            },
+            {
+                name: "Uranus",
+                size: 20,
+                color: "#82E0AA",
+                orbitRadius: 600,
+                orbitSpeed: 60,
+                moons: [
+                    { size: 2, radius: 22, speed: 2, color: "#ddd" },
+                    { size: 2, radius: 28, speed: 3, color: "#ddd" }
+                ]
+            },
+            {
+                name: "Neptune",
+                size: 19,
+                color: "#5DADE2",
+                orbitRadius: 700,
+                orbitSpeed: 80,
+                moons: [
+                    { size: 3, radius: 25, speed: 2.5, color: "#eee" } // Triton
+                ]
+            }
+        ];
+
+        const container = document.getElementById('solar-system');
+
+        solarSystemData.forEach(planetData => {
+            // 1. Create Orbit Ring (Visual Guide)
+            const orbitRing = document.createElement('div');
+            orbitRing.className = 'orbit';
+            orbitRing.style.width = `${planetData.orbitRadius * 2}px`;
+            orbitRing.style.height = `${planetData.orbitRadius * 2}px`;
+            container.appendChild(orbitRing);
+
+            // 2. Create Planet Container (The thing that spins)
+            const planetContainer = document.createElement('div');
+            planetContainer.className = 'planet-container';
+            planetContainer.style.width = `${planetData.orbitRadius * 2}px`;
+            planetContainer.style.height = `${planetData.orbitRadius * 2}px`;
+            planetContainer.style.animationDuration = `${planetData.orbitSpeed}s`;
+            container.appendChild(planetContainer);
+
+            // 3. Create The Planet Body
+            const planetBody = document.createElement('div');
+            planetBody.className = 'planet';
+            planetBody.style.width = `${planetData.size}px`;
+            planetBody.style.height = `${planetData.size}px`;
+            planetBody.style.backgroundColor = planetData.color;
+            
+            // Saturn Rings Special Styling
+            if (planetData.ring) {
+                const ring = document.createElement('div');
+                ring.style.position = 'absolute';
+                ring.style.top = '50%';
+                ring.style.left = '50%';
+                ring.style.transform = 'translate(-50%, -50%) rotateX(70deg)';
+                ring.style.width = `${planetData.size * 2.2}px`;
+                ring.style.height = `${planetData.size * 2.2}px`;
+                ring.style.border = '4px solid rgba(200, 180, 100, 0.6)';
+                ring.style.borderRadius = '50%';
+                planetBody.appendChild(ring);
+            }
+
+            // Label
+            const label = document.createElement('div');
+            label.className = 'label';
+            label.innerText = planetData.name;
+            planetBody.appendChild(label);
+
+            planetContainer.appendChild(planetBody);
+
+            // 4. Create Moons
+            planetData.moons.forEach((moonData, index) => {
+                // Moon Orbit Container (Spins around planet)
+                const moonSystem = document.createElement('div');
+                moonSystem.className = 'moon-system';
+                // Diameter is radius * 2
+                moonSystem.style.width = `${moonData.radius * 2}px`;
+                moonSystem.style.height = `${moonData.radius * 2}px`;
+                moonSystem.style.animationDuration = `${moonData.speed}s`;
+                // Counter-rotate the moon system slightly so moons don't all start at same angle if desired, 
+                // but keeping it simple: they start at 0 (right side).
+                
+                // Add a subtle visual line for the moon orbit
+                const moonOrbitLine = document.createElement('div');
+                moonOrbitLine.className = 'moon-orbit-line';
+                moonOrbitLine.style.width = `${moonData.radius * 2}px`;
+                moonOrbitLine.style.height = `${moonData.radius * 2}px`;
+                moonSystem.appendChild(moonOrbitLine);
+
+                // The Moon Body
+                const moonBody = document.createElement('div');
+                moonBody.className = 'moon';
+                moonBody.style.width = `${moonData.size}px`;
+                moonBody.style.height = `${moonData.size}px`;
+                moonBody.style.backgroundColor = moonData.color;
+
+                moonSystem.appendChild(moonBody);
+                planetBody.appendChild(moonSystem);
+            });
+        });
+    </script>
+</body>
+</html>
+
